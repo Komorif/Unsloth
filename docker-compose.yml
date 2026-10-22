@@ -1,0 +1,35 @@
+name: unsloth
+
+services:
+  unsloth:
+    image: unsloth/unsloth:latest
+    restart: unless-stopped
+    gpus: all
+    shm_size: "2gb"
+    stop_grace_period: 2m
+    environment:
+      UNSLOTH_STUDIO_PORT: "8000"
+      UNSLOTH_STUDIO_PASSWORD: ${UNSLOTH_STUDIO_PASSWORD:?Set UNSLOTH_STUDIO_PASSWORD in .env}
+    volumes:
+      - unsloth_studio:/opt/unsloth-studio
+      - unsloth_workspace:/workspace
+      - huggingface_cache:/workspace/.cache/huggingface
+      - ./work:/workspace/host
+    ports:
+      - "192.168.1.183:9898:8000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--max-time", "5", "http://127.0.0.1:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5m
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  unsloth_studio:
+  unsloth_workspace:
+  huggingface_cache:
